@@ -27,7 +27,7 @@ parser.add_argument("--pretrained", default="", type=str, help="path to pretrain
 
 
 def main():
-    global opt, model, logger
+    global opt, logger
     opt = parser.parse_args()
     print(opt)
 
@@ -91,8 +91,9 @@ def main():
         save_checkpoint(model, epoch)
 
 def adjust_learning_rate(optimizer, epoch):
-    """Sets the learning rate to the initial LR decayed by 10 every 500 epochs"""
     lr = opt.lr * (0.1 ** (epoch // opt.step))
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = lr
     return lr
 
 def train(training_data_loader, optimizer, model, criterion, epoch):
