@@ -77,6 +77,8 @@ label_x8 = label_x8(:, :, :, order);
 label_x4 = label_x4(:, :, :, order); 
 label_x2 = label_x2(:, :, :, order);
 
+disp({'Generate',int2str(count)})
+
 %% writing to HDF5
 chunksz = 256;
 created_flag = false;

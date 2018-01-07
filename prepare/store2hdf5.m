@@ -1,4 +1,4 @@
-function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, labels_x4, labels_x8, bicubic_x2, bicubic_x4, bicubic_x8, create, startloc, chunksz)  
+function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, labels_x4, labels_x8, create, startloc, chunksz)
   % *data* is W*H*C*N matrix of images should be normalized (e.g. to lie between 0 and 1) beforehand
   % *label* is D*N matrix of labels (D labels per sample) 
   % *create* [0/1] specifies whether to create file newly or to append to previously created file, useful to store information in batches when a dataset is too big to be held in memory  (default: 1)
@@ -12,17 +12,11 @@ function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, 
   lab_x2_dims=size(labels_x2);
   lab_x4_dims=size(labels_x4);
   lab_x8_dims=size(labels_x8);
-  bic_x2_dims=size(bicubic_x2);
-  bic_x4_dims=size(bicubic_x4);
-  bic_x8_dims=size(bicubic_x8);
   num_samples=dat_dims(end);
 
   assert(lab_x8_dims(end)==num_samples, 'Number of samples should be matched between data and labels');
   assert(lab_x4_dims(end)==num_samples, 'Number of samples should be matched between data and labels');
   assert(lab_x2_dims(end)==num_samples, 'Number of samples should be matched between data and labels');
-  assert(bic_x2_dims(end)==num_samples, 'Number of samples should be matched between data and labels');
-  assert(bic_x4_dims(end)==num_samples, 'Number of samples should be matched between data and labels');
-  assert(bic_x8_dims(end)==num_samples, 'Number of samples should be matched between data and labels');
   
   if ~exist('create','var')
     create=true;
@@ -41,18 +35,12 @@ function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, 
     h5create(filename, '/data', [dat_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [dat_dims(1:end-1) chunksz]); % width, height, channels, number 
     h5create(filename, '/label_x2', [lab_x2_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [lab_x2_dims(1:end-1) chunksz]); % width, height, channels, number
     h5create(filename, '/label_x4', [lab_x4_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [lab_x4_dims(1:end-1) chunksz]); % width, height, channels, number 
-    h5create(filename, '/label_x8', [lab_x8_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [lab_x8_dims(1:end-1) chunksz]); % width, height, channels, number 
-    h5create(filename, '/bicubic_x2', [bic_x2_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [bic_x2_dims(1:end-1) chunksz]); % width, height, channels, number
-    h5create(filename, '/bicubic_x4', [bic_x4_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [bic_x4_dims(1:end-1) chunksz]); % width, height, channels, number 
-    h5create(filename, '/bicubic_x8', [bic_x8_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [bic_x8_dims(1:end-1) chunksz]); % width, height, channels, number
+    h5create(filename, '/label_x8', [lab_x8_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [lab_x8_dims(1:end-1) chunksz]); % width, height, channels, number
     if ~exist('startloc','var') 
       startloc.dat=[ones(1,length(dat_dims)-1), 1];
       startloc.lab_x2=[ones(1,length(lab_x2_dims)-1), 1];
       startloc.lab_x4=[ones(1,length(lab_x4_dims)-1), 1];
       startloc.lab_x8=[ones(1,length(lab_x8_dims)-1), 1];
-      startloc.bic_x2=[ones(1,length(bic_x2_dims)-1), 1];
-      startloc.bic_x4=[ones(1,length(bic_x4_dims)-1), 1];
-      startloc.bic_x8=[ones(1,length(bic_x8_dims)-1), 1];
     end 
   else  % append mode
     if ~exist('startloc','var')
@@ -61,23 +49,14 @@ function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, 
       prev_lab_x2_sz=info.Datasets(2).Dataspace.Size;
       prev_lab_x4_sz=info.Datasets(3).Dataspace.Size;
       prev_lab_x8_sz=info.Datasets(4).Dataspace.Size;
-      prev_bic_x2_sz=info.Datasets(5).Dataspace.Size;
-      prev_bic_x4_sz=info.Datasets(6).Dataspace.Size;
-      prev_bic_x8_sz=info.Datasets(7).Dataspace.Size;
       assert(prev_dat_sz(1:end-1)==dat_dims(1:end-1), 'Data dimensions must match existing dimensions in dataset');
       assert(prev_lab_x2_sz(1:end-1)==lab_x2_dims(1:end-1), 'Data dimensions must match existing dimensions in dataset');
       assert(prev_lab_x4_sz(1:end-1)==lab_x4_dims(1:end-1), 'Label dimensions must match existing dimensions in dataset');
       assert(prev_lab_x8_sz(1:end-1)==lab_x8_dims(1:end-1), 'Label dimensions must match existing dimensions in dataset');
-      assert(prev_bic_x2_sz(1:end-1)==bic_x2_dims(1:end-1), 'bic dimensions must match existing dimensions in dataset');
-      assert(prev_bic_x4_sz(1:end-1)==bic_x4_dims(1:end-1), 'bic dimensions must match existing dimensions in dataset');
-      assert(prev_bic_x8_sz(1:end-1)==bic_x8_dims(1:end-1), 'bic dimensions must match existing dimensions in dataset');
       startloc.dat=[ones(1,length(dat_dims)-1), prev_dat_sz(end)+1];
       startloc.lab_x2=[ones(1,length(lab_x2_dims)-1), prev_lab_x2_sz(end)+1];
       startloc.lab_x4=[ones(1,length(lab_x4_dims)-1), prev_lab_x4_sz(end)+1];
       startloc.lab_x8=[ones(1,length(lab_x8_dims)-1), prev_lab_x8_sz(end)+1];
-      startloc.bic_x2=[ones(1,length(bic_x2_dims)-1), prev_bic_x2_sz(end)+1];
-      startloc.bic_x4=[ones(1,length(bic_x4_dims)-1), prev_bic_x4_sz(end)+1];
-      startloc.bic_x8=[ones(1,length(bic_x8_dims)-1), prev_bic_x8_sz(end)+1];
     end
   end
 
@@ -86,9 +65,6 @@ function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, 
     h5write(filename, '/label_x2', single(labels_x2), startloc.lab_x2, size(labels_x2));
     h5write(filename, '/label_x4', single(labels_x4), startloc.lab_x4, size(labels_x4));
     h5write(filename, '/label_x8', single(labels_x8), startloc.lab_x8, size(labels_x8));
-    h5write(filename, '/bicubic_x2', single(bicubic_x2), startloc.bic_x2, size(bicubic_x2));
-    h5write(filename, '/bicubic_x4', single(bicubic_x4), startloc.bic_x4, size(bicubic_x4));
-    h5write(filename, '/bicubic_x8', single(bicubic_x8), startloc.bic_x8, size(bicubic_x8));
   end
 
   if nargout
@@ -97,8 +73,5 @@ function [curr_dat_sz, curr_lab_sz] = store2hdf5_pry(filename, data, labels_x2, 
     curr_lab_x2_sz=info.Datasets(2).Dataspace.Size;
     curr_lab_x4_sz=info.Datasets(3).Dataspace.Size;
     curr_lab_x8_sz=info.Datasets(4).Dataspace.Size;
-    curr_bic_x2_sz=info.Datasets(5).Dataspace.Size;
-    curr_bic_x4_sz=info.Datasets(6).Dataspace.Size;
-    curr_bic_x8_sz=info.Datasets(7).Dataspace.Size;
   end
 end
