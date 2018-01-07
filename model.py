@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import math
-from SrSEBlock import SrSEBlock
+from srseblock import SrSEBlock
 
 def get_upsample_filter(size):
     """Make a 2D bilinear kernel suitable for upsampling"""
