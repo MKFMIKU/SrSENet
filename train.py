@@ -114,11 +114,13 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
 
         if opt.cuda:
             input = input.cuda()
-            label_x2 = label_x2.cuda()
+            label = label_x2.cuda()
+        else:
+            input = input.cpu()
+            label = label_x2.cpu()
 
-        sr_x2 = model(input)
-        loss_x2 = criterion(label_x2, sr_x2)  
-        loss = loss_x2
+        sr= model(input)
+        loss = criterion(label, sr)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -129,7 +131,7 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
             logger.add_scalar('loss', loss.data[0], len(training_data_loader)*epoch + iteration)
 
 
-def save_checkpoint(model_g, epoch):
+def save_checkpoint(model, epoch):
     model_folder = "SrSENet_checkpints/"
     model_out_path = model_folder + "{}.pth".format(epoch)
     state = {"epoch": epoch, "model": model}
