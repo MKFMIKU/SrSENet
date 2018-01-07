@@ -13,10 +13,10 @@ stride = 128;
 %% downsizing
 downsizes = [1,0.7,0.5];
 
-data = zeros(size_input, size_input, 3, 1);
-label_x2 = zeros(size_x2, size_x2, 3, 1);
-label_x4 = zeros(size_x4, size_x4, 3, 1);
-label_x8 = zeros(size_label, size_label, 3, 1);
+data = zeros(size_input, size_input, 1, 1);
+label_x2 = zeros(size_x2, size_x2, 1, 1);
+label_x4 = zeros(size_x4, size_x4, 1, 1);
+label_x8 = zeros(size_label, size_label, 1, 1);
 
 count = 0;
 margain = 0;
@@ -47,13 +47,14 @@ for i = 1 : length(filepaths)
             for degree = 1 : 4
                 image = imrotate(image, 90 * (degree - 1));
                 if size(image,3)==3
+                    image = rgb2ycbcr(image);
                     image = im2double(image);
                     im_label = modcrop(image, scale);
-                    [hei,wid, c] = size(im_label);
+                    [hei,wid] = size(im_label);
 
                     for x = 1 + margain : stride : hei-size_label+1 - margain
                         for y = 1 + margain :stride : wid-size_label+1 - margain
-                            subim_label = im_label(x : x+size_label-1, y : y+size_label-1, :);
+                            subim_label = im_label(x : x+size_label-1, y : y+size_label-1);
                             subim_label_x2 = imresize(subim_label,1/2,'bicubic');
                             subim_label_x4 = imresize(subim_label,1/4,'bicubic');
                             subim_input = imresize(subim_label,1/scale,'bicubic');

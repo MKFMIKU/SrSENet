@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import math
 from srseblock import SrSEBlock
+import torch.nn.init as init
 
 def get_upsample_filter(size):
     """Make a 2D bilinear kernel suitable for upsampling"""
@@ -16,39 +16,24 @@ def get_upsample_filter(size):
              (1 - abs(og[1] - center) / factor)
     return torch.from_numpy(filter).float()
 
-class MeanShift(nn.Conv2d):
-    def __init__(self, rgb_range, rgb_mean, sign):
-        super(MeanShift, self).__init__(3, 3, kernel_size=1)
-        self.weight.data = torch.eye(3).view(3, 3, 1, 1)
-        self.bias.data = float(sign) * torch.Tensor(rgb_mean) * rgb_range
-
-        # Freeze the MeanShift layer
-        for params in self.parameters():
-            params.requires_grad = False
-
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.convt_I1 = nn.ConvTranspose2d(in_channels=3, out_channels=3, kernel_size=16, stride=8, padding=4, bias=False)
+        self.convt_I1 = nn.ConvTranspose2d(in_channels=1, out_channels=1, kernel_size=4, stride=2, padding=1, bias=False)
 
-        self.conv_input = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv_input = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False)
         #self.relu_input = nn.LeakyReLU(0.2, inplace=True)
         self.convt_F1 = self.make_layer(SrSEBlock(64), 8)
 
-        self.Transpose = nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=16, stride=8, padding=4, bias=False)
+        self.Transpose = nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=4, stride=2, padding=1, bias=False)
         self.relu_transpose = nn.LeakyReLU(0.2, inplace=True) 
         
-        self.convt_R1 = nn.Conv2d(in_channels=64, out_channels=3, kernel_size=3, stride=1, padding=1, bias=False)
+        self.convt_R1 = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding=1, bias=False)
 
-        rgb_mean = (0.4488, 0.4371, 0.4040)
-        self.sub_mean = common.MeanShift(args.rgb_range, rgb_mean, -1)
-        
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-                if m.bias is not None:
-                    m.bias.data.zero_()
+                init.orthogonal(m.weight)
+
             if isinstance(m, nn.ConvTranspose2d):
                 c1, c2, h, w = m.weight.data.size()
                 weight = get_upsample_filter(h)
@@ -64,7 +49,6 @@ class Net(nn.Module):
 
     def forward(self, x):
         """放大LR"""
-        x = self.sub_mean(x)
         convt_I1 = self.convt_I1(x)
     
         out = self.conv_input(x) 
