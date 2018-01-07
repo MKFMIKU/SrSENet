@@ -18,9 +18,6 @@ label_x2 = zeros(size_x2, size_x2, 3, 1);
 label_x4 = zeros(size_x4, size_x4, 3, 1);
 label_x8 = zeros(size_label, size_label, 3, 1);
 
-bicubic_x2 = zeros(size_x2, size_x2, 3, 1);
-bicubic_x4 = zeros(size_x4, size_x4, 3, 1);
-bicubic_x8 = zeros(size_label, size_label, 3, 1);
 count = 0;
 margain = 0;
 
@@ -61,19 +58,11 @@ for i = 1 : length(filepaths)
                             subim_label_x4 = imresize(subim_label,1/4,'bicubic');
                             subim_input = imresize(subim_label,1/scale,'bicubic');
 
-                            subim_bicubic_x2 = imresize(subim_input,2,'bicubic');
-                            subim_bicubic_x4 = imresize(subim_input,4,'bicubic');
-                            subim_bicubic_x8 = imresize(subim_input,8,'bicubic');
-
                             count=count+1;
                             data(:, :, :, count) = subim_input;            
                             label_x2(:, :, :, count) = subim_label_x4;  
                             label_x4(:, :, :, count) = subim_label_x2;   
                             label_x8(:, :, :, count) = subim_label;
-
-                            bicubic_x2(:, :, :, count) = subim_bicubic_x2;
-                            bicubic_x4(:, :, :, count) = subim_bicubic_x4;
-                            bicubic_x8(:, :, :, count) = subim_bicubic_x8;
                         end
                     end
                 end
@@ -86,11 +75,7 @@ order = randperm(count);
 data = data(:, :, :, order);
 label_x8 = label_x8(:, :, :, order);
 label_x4 = label_x4(:, :, :, order); 
-label_x2 = label_x2(:, :, :, order); 
-
-bicubic_x2 = bicubic_x2(:, :, :, order);
-bicubic_x4 = bicubic_x4(:, :, :, order);
-bicubic_x8 = bicubic_x8(:, :, :, order);
+label_x2 = label_x2(:, :, :, order);
 
 %% writing to HDF5
 chunksz = 256;
@@ -104,13 +89,10 @@ for batchno = 1:floor(count/chunksz)
     batchlabs_x2 = label_x2(:,:,:,last_read+1:last_read+chunksz);
     batchlabs_x4 = label_x4(:,:,:,last_read+1:last_read+chunksz);
     batchlabs_x8 = label_x8(:,:,:,last_read+1:last_read+chunksz);
+
     
-    batchbicubic_x2 = bicubic_x2(:,:,:,last_read+1:last_read+chunksz);
-    batchbicubic_x4 = bicubic_x4(:,:,:,last_read+1:last_read+chunksz);
-    batchbicubic_x8 = bicubic_x8(:,:,:,last_read+1:last_read+chunksz);
-    
-    startloc = struct('dat',[1,1,1,totalct+1], 'lab_x2', [1,1,1,totalct+1], 'lab_x4', [1,1,1,totalct+1], 'lab_x8', [1,1,1,totalct+1], 'bic_x2', [1,1,1,totalct+1], 'bic_x4', [1,1,1,totalct+1], 'bic_x8', [1,1,1,totalct+1]);
-    curr_dat_sz = store2hdf5(savepath, batchdata, batchlabs_x2, batchlabs_x4, batchlabs_x8, batchbicubic_x2, batchbicubic_x4, batchbicubic_x8, ~created_flag, startloc, chunksz); 
+    startloc = struct('dat',[1,1,1,totalct+1], 'lab_x2', [1,1,1,totalct+1], 'lab_x4', [1,1,1,totalct+1], 'lab_x8', [1,1,1,totalct+1]);
+    curr_dat_sz = store2hdf5(savepath, batchdata, batchlabs_x2, batchlabs_x4, batchlabs_x8, ~created_flag, startloc, chunksz);
     created_flag = true;
     totalct = curr_dat_sz(end);
 end
