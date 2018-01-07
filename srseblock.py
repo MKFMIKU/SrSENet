@@ -3,7 +3,7 @@ from selayer import SELayer
 
 class SrSEBlock(nn.Module):
     def __init__(self, planes, stride=1):
-        super(SEBlock, self).__init__()
+        super(SrSEBlock, self).__init__()
         self.conv1 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.relu1 = nn.LeakyReLU(0.2, inplace=True)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
