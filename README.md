@@ -13,6 +13,8 @@ Then run the `generate_train.m` using MATLAB. A big file in train.h5 will appear
 - For testing, download [Testing](http://vllab.ucmerced.edu/wlai24/LapSRN/images/icon_zip.png) datasets, and change the variable `folder` to
 the place where test datasets in. Then run it in Matlab. A folder named `testdatasets` will appear.
 
+- For real time loss monitor, we use [tensorboardX](https://github.com/lanpa/tensorboard-pytorch)
+
 ### Training
 ```
 usage: train.py [-h] [--batchSize BATCHSIZE] [--blocks BLOCKS]
@@ -51,3 +53,6 @@ pass
 
 ## Result
 pass
+
+## References
+https://github.com/twtygqyy/pytorch-SRResNet

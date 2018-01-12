@@ -8,17 +8,19 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from model import Net, L1_Charbonnier_loss
 from data import DatasetFromHdf5
+from utils import save_checkpoint
 from tensorboardX import SummaryWriter
 
 # Training settings
 parser = argparse.ArgumentParser(description="PyTorch SrSENet")
 parser.add_argument("--batchSize", type=int, default=64, help="training batch size")
-parser.add_argument("--blocks", default=8, type=int, help="Blocks nums of SrSEBlock")
+parser.add_argument("--blocks", default=8, type=int, help="blocks nums of SrSEBlock, Default: n=8")
 parser.add_argument("--nEpochs", type=int, default=300, help="number of epochs to train for")
 parser.add_argument("--lr", type=float, default=1e-4, help="Learning Rate. Default=1e-4")
-parser.add_argument("--step", type=int, default=150,
-                    help="Sets the learning rate to the initial LR decayed by momentum every n epochs, Default: n=10")
+parser.add_argument("--step", type=int, default=100,
+                    help="Sets the learning rate to the initial LR decayed by momentum every n epochs, Default: n=100")
 parser.add_argument("--cuda", action="store_true", help="Use cuda?")
+parser.add_argument("--gpus", type=int, default=4, help="nums of gpu to use")
 parser.add_argument("--resume", default="", type=str, help="Path to checkpoint (default: none)")
 parser.add_argument("--start-epoch", default=1, type=int, help="Manual epoch number (useful on restarts)")
 parser.add_argument("--threads", type=int, default=1, help="Number of threads for data loader to use, Default: 1")
@@ -38,8 +40,7 @@ def main():
     if cuda and not torch.cuda.is_available():
         raise Exception("No GPU found, please run without --cuda")
 
-    # opt.seed = random.randint(1, 10000)
-    opt.seed = 7777
+    opt.seed = random.randint(1, 10000)
     print("Random Seed: ", opt.seed)
     torch.manual_seed(opt.seed)
     if cuda:
@@ -48,7 +49,7 @@ def main():
     cudnn.benchmark = True
 
     print("===> Loading datasets")
-    train_set = DatasetFromHdf5("/home/scw4750/Datasets/big_train.h5")
+    train_set = DatasetFromHdf5("prepare/big_train.h5")
     training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize,
                                       shuffle=True)
 
@@ -58,7 +59,7 @@ def main():
 
     print("===> Setting GPU")
     if cuda:
-        model = nn.DataParallel(model, device_ids=[0,1,2,3]).cuda()
+        model = nn.DataParallel(model, device_ids=[i for i in range(opt.gpus)]).cuda()
         criterion = criterion.cuda()
     else:
         model = model.cpu()
@@ -109,16 +110,16 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
 
     for iteration, batch in enumerate(training_data_loader, 1):
 
-        input, label_x2 = \
+        input, label = \
             Variable(batch[0]), \
             Variable(batch[1], requires_grad=False)
 
         if opt.cuda:
             input = input.cuda()
-            label = label_x2.cuda()
+            label = label.cuda()
         else:
             input = input.cpu()
-            label = label_x2.cpu()
+            label = label.cpu()
 
         sr= model(input)
         loss = criterion(label, sr)
@@ -131,17 +132,8 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
                                                                 loss.data[0]))
             logger.add_scalar('loss', loss.data[0], len(training_data_loader)*epoch + iteration)
 
+    save_checkpoint(model, optimizer, epoch)
 
-def save_checkpoint(model, epoch):
-    model_folder = "SrSENet_checkpints/"
-    model_out_path = model_folder + "{}.pth".format(epoch)
-    state = {"epoch": epoch, "model": model}
-    if not os.path.exists(model_folder):
-        os.makedirs(model_folder)
-
-    torch.save(state, model_out_path)
-
-    print("Checkpoint saved to {}".format(model_out_path))
 
 
 if __name__ == "__main__":
