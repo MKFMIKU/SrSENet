@@ -17,13 +17,12 @@ def get_upsample_filter(size):
     return torch.from_numpy(filter).float()
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, blocks):
         super(Net, self).__init__()
         self.convt_I1 = nn.ConvTranspose2d(in_channels=1, out_channels=1, kernel_size=4, stride=2, padding=1, bias=False)
 
         self.conv_input = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False)
-        #self.relu_input = nn.LeakyReLU(0.2, inplace=True)
-        self.convt_F1 = self.make_layer(SrSEBlock(64), 8)
+        self.convt_F1 = self.make_layer(SrSEBlock(64), blocks)
 
         self.Transpose = nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=4, stride=2, padding=1, bias=False)
         self.relu_transpose = nn.LeakyReLU(0.2, inplace=True) 
@@ -33,11 +32,11 @@ class Net(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 init.orthogonal(m.weight)
+                if m.bias is not None:
+                    m.bias.data.zero_()
 
             if isinstance(m, nn.ConvTranspose2d):
-                c1, c2, h, w = m.weight.data.size()
-                weight = get_upsample_filter(h)
-                m.weight.data = weight.view(1, 1, h, w).repeat(c1, c2, 1, 1)
+                init.orthogonal(m.weight)
                 if m.bias is not None:
                     m.bias.data.zero_()
                     

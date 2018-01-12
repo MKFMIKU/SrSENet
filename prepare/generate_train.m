@@ -4,12 +4,12 @@ folder = 'datasets';
 
 savepath = 'train.h5';
 
-size_label = 192;
+size_label = 96;
 scale = 8;
 size_input = size_label/scale;
 size_x2 = size_label/4;
 size_x4 = size_label/2;
-stride = 128;
+stride = 48;
 %% downsizing
 downsizes = [1,0.7,0.5];
 
@@ -48,7 +48,7 @@ for i = 1 : length(filepaths)
                 image = imrotate(image, 90 * (degree - 1));
                 if size(image,3)==3
                     image = rgb2ycbcr(image);
-                    image = im2double(image);
+                    image = im2double(image(:, :, 1));
                     im_label = modcrop(image, scale);
                     [hei,wid] = size(im_label);
 

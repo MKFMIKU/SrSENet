@@ -13,6 +13,7 @@ from tensorboardX import SummaryWriter
 # Training settings
 parser = argparse.ArgumentParser(description="PyTorch SrSENet")
 parser.add_argument("--batchSize", type=int, default=64, help="training batch size")
+parser.add_argument("--blocks", default=8, type=int, help="Blocks nums of SrSEBlock")
 parser.add_argument("--nEpochs", type=int, default=300, help="number of epochs to train for")
 parser.add_argument("--lr", type=float, default=1e-4, help="Learning Rate. Default=1e-4")
 parser.add_argument("--step", type=int, default=150,
@@ -38,7 +39,7 @@ def main():
         raise Exception("No GPU found, please run without --cuda")
 
     # opt.seed = random.randint(1, 10000)
-    opt.seed = 3348
+    opt.seed = 7777
     print("Random Seed: ", opt.seed)
     torch.manual_seed(opt.seed)
     if cuda:
@@ -47,12 +48,12 @@ def main():
     cudnn.benchmark = True
 
     print("===> Loading datasets")
-    train_set = DatasetFromHdf5("prepare/train.h5")
+    train_set = DatasetFromHdf5("/home/scw4750/Datasets/big_train.h5")
     training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize,
                                       shuffle=True)
 
     print("===> Building model")
-    model = Net()
+    model = Net(opt.blocks)
     criterion = L1_Charbonnier_loss()
 
     print("===> Setting GPU")

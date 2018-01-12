@@ -19,6 +19,6 @@ for i = 1 : length(filepaths)
     im_b_y = im_b_ycbcr(:,:,1) * 255.0;
     im_b = ycbcr2rgb(im_b_ycbcr) * 255.0;
 
-    filename = sprintf('testdataset/new/%s.mat',filepaths(i).name);
+    filename = sprintf('testdataset/%s.mat',filepaths(i).name);
     save(filename, 'im_gt_y', 'im_b_y', 'im_gt', 'im_b', 'im_l_ycbcr', 'im_l_y', 'im_l', '-v6');
 end
