@@ -1,6 +1,7 @@
 import argparse, os
 import torch
 import random
+import math
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.optim as optim
@@ -114,7 +115,7 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
 
         input, label = \
             Variable(batch[0]), \
-            Variable(batch[1], requires_grad=False)
+            Variable(batch[ int(math.sqrt(opt.rate)) ], requires_grad=False)
 
         if opt.cuda:
             input = input.cuda()
