@@ -135,7 +135,7 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
                                                                 loss.data[0]))
             logger.add_scalar('loss', loss.data[0], len(training_data_loader)*epoch + iteration)
 
-    save_checkpoint(model, opt.rate, optimizer, epoch)
+    save_checkpoint(model, opt.rate, epoch)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import torch
 import os
 
-def save_checkpoint(model, rate, optim, epoch):
+def save_checkpoint(model, rate, epoch):
     model_folder = "SrSENet_x%d_checkpoints/"%rate
     model_out_path = model_folder + "{}.pth".format(epoch)
 
@@ -14,6 +14,5 @@ def save_checkpoint(model, rate, optim, epoch):
 
     torch.save({
         'epoch': epoch,
-        'state_dict': state_dict,
-        'optimizer': optim}, model_out_path)
+        'state_dict': state_dict}, model_out_path)
     print("Checkpoint saved to {}".format(model_out_path))
