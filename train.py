@@ -28,6 +28,7 @@ parser.add_argument("--threads", type=int, default=1, help="Number of threads fo
 parser.add_argument("--momentum", default=0.9, type=float, help="Momentum, Default: 0.9")
 parser.add_argument("--weight-decay", "--wd", default=1e-4, type=float, help="weight decay, Default: 1e-4")
 parser.add_argument("--pretrained", default="", type=str, help="path to pretrained model (default: none)")
+parser.add_argument("--datasets", default="", type=str, help="path to load train datasets(default: none)")
 
 
 def main():
@@ -50,7 +51,7 @@ def main():
     cudnn.benchmark = True
 
     print("===> Loading datasets")
-    train_set = DatasetFromHdf5("prepare/big_train.h5")
+    train_set = DatasetFromHdf5(opt.datasets)
     training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize,
                                       shuffle=True)
 
