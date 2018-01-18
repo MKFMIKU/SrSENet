@@ -14,6 +14,7 @@ from tensorboardX import SummaryWriter
 # Training settings
 parser = argparse.ArgumentParser(description="PyTorch SrSENet")
 parser.add_argument("--batchSize", type=int, default=64, help="training batch size")
+parser.add_argument("--rate", default=2, type=int, help="upscale rate, Default: n=2")
 parser.add_argument("--blocks", default=8, type=int, help="blocks nums of SrSEBlock, Default: n=8")
 parser.add_argument("--nEpochs", type=int, default=300, help="number of epochs to train for")
 parser.add_argument("--lr", type=float, default=1e-4, help="Learning Rate. Default=1e-4")
@@ -54,7 +55,7 @@ def main():
                                       shuffle=True)
 
     print("===> Building model")
-    model = Net(opt.blocks)
+    model = Net(opt.blocks, opt.rate)
     criterion = L1_Charbonnier_loss()
 
     print("===> Setting GPU")
@@ -71,7 +72,7 @@ def main():
             print("=> loading checkpoint '{}'".format(opt.resume))
             checkpoint = torch.load(opt.resume)
             opt.start_epoch = checkpoint["epoch"] + 1
-            model.load_state_dict(checkpoint["model"].state_dict())
+            model.load_state_dict(checkpoint["state_dict"])
         else:
             print("=> no checkpoint found at '{}'".format(opt.resume))
 
@@ -80,7 +81,7 @@ def main():
         if os.path.isfile(opt.pretrained):
             print("=> loading model '{}'".format(opt.pretrained))
             weights = torch.load(opt.pretrained)
-            model.load_state_dict(weights['model'].state_dict())
+            model.load_state_dict(weights['state_dict'].state_dict())
         else:
             print("=> no model found at '{}'".format(opt.pretrained))
 
@@ -132,8 +133,7 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
                                                                 loss.data[0]))
             logger.add_scalar('loss', loss.data[0], len(training_data_loader)*epoch + iteration)
 
-    save_checkpoint(model, optimizer, epoch)
-
+    save_checkpoint(model, opt.rate, optimizer, epoch)
 
 
 if __name__ == "__main__":
