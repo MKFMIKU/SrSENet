@@ -60,14 +60,6 @@ def main():
     model = Net(opt.blocks, opt.rate)
     criterion = L1_Charbonnier_loss()
 
-    print("===> Setting GPU")
-    if cuda:
-        model = nn.DataParallel(model, device_ids=[i for i in range(opt.gpus)]).cuda()
-        criterion = criterion.cuda()
-    else:
-        model = model.cpu()
-        criterion = criterion.cpu()
-
     # optionally resume from a checkpoint
     if opt.resume:
         if os.path.isfile(opt.resume):
@@ -86,6 +78,14 @@ def main():
             model.load_state_dict(weights['state_dict'].state_dict())
         else:
             print("=> no model found at '{}'".format(opt.pretrained))
+
+    print("===> Setting GPU")
+    if cuda:
+        model = nn.DataParallel(model, device_ids=[i for i in range(opt.gpus)]).cuda()
+        criterion = criterion.cuda()
+    else:
+        model = model.cpu()
+        criterion = criterion.cpu()
 
     print("===> Setting Optimizer")
     optimizer = optim.Adam(model.parameters(), lr=opt.lr)
