@@ -19,6 +19,6 @@ class SrSEBlock(nn.Module):
 
 
         out += residual
-        out = self.relu1(out)
+        out = self.relu(out)
 
         return out
