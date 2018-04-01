@@ -58,12 +58,20 @@ optional arguments:
                         path to load model checkpoint
   --test TEST           path to load test images
 ```
-
 ## Performance
 
+| Datasets     | VDSR    | LapSRN  | SrSENet |
+|:----------   | :------ | :------ | :------ |
+| BSDS100(x8)  | 24.37dB | 24.54dB | 24.59dB |
+| Urban100(x8) | 21.54dB | 21.81dB | 21.88dB |
+| Manga109(x8) | 22.83dB | 23.39dB | 23.54dB |
 
 ## Result
-pass
+| VDSR    | LapSRN  | SrSENet |
+| :------ | :------ | :------ |
+| ![VDSR](./docs/2BokuHaSitatakaKun_x8_VDSR.png) | ![LapSRN](./docs/2BokuHaSitatakaKun_x8_LapSRN.png) | ![SrSENet](./docs/2BokuHaSitatakaKun.png) |
 
 ## References
 https://github.com/twtygqyy/pytorch-SRResNet
+
+https://github.com/moskomule/senet.pytorch
