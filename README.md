@@ -1,6 +1,8 @@
 # SrSENet.pytorch
 
-Official implement of paper: "Single Image Super-Resolution UsingSqueeze-and-Excitation Networks" with [PyTorch](http://pytorch.org/)
+Implement of our paper "[Single Image Super-Resolution UsingSqueeze-and-Excitation Networks](http://www.kfm.cat/pdf/SrSeNet_Latex.pdf)"
+
+![SrSENet](./docs/SRSENet.png)
 
 ## Usage
 
@@ -47,9 +49,18 @@ optional arguments:
 ```
 
 ### Testing
-pass
+```
+PyTorch SrSENet
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --checkpoint CHECKPOINT
+                        path to load model checkpoint
+  --test TEST           path to load test images
+```
 
 ## Performance
+
 
 ## Result
 pass

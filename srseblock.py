@@ -11,13 +11,8 @@ class SrSEBlock(nn.Module):
 
     def forward(self, x):
         residual = x
-
         out = self.relu(self.conv1(x))
         out = self.conv2(out)
-
         out = self.se(out)
-
-
         out += residual
-        
         return out
