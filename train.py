@@ -1,19 +1,19 @@
 import argparse, os
 import torch
-import random
 import math
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from model import Net, L1_Charbonnier_loss
+from model.SrSENet import Net, L1_Charbonnier_loss
 from data import DatasetFromHdf5
 from utils import save_checkpoint
 from tensorboardX import SummaryWriter
 
 # Training settings
 parser = argparse.ArgumentParser(description="PyTorch SrSENet")
+parser.add_argument("--use_se", action="store_true", help="Use SELayer?")
 parser.add_argument("--batchSize", type=int, default=64, help="training batch size")
 parser.add_argument("--rate", default=2, type=int, help="upscale rate, Default: n=2")
 parser.add_argument("--blocks", default=8, type=int, help="blocks nums of SrSEBlock, Default: n=8")
@@ -43,11 +43,10 @@ def main():
     if cuda and not torch.cuda.is_available():
         raise Exception("No GPU found, please run without --cuda")
 
-    opt.seed = random.randint(1, 10000)
-    print("Random Seed: ", opt.seed)
-    torch.manual_seed(opt.seed)
+    seed = 774
+    torch.manual_seed(seed)
     if cuda:
-        torch.cuda.manual_seed(opt.seed)
+        torch.cuda.manual_seed(seed)
 
     cudnn.benchmark = True
 
@@ -57,7 +56,7 @@ def main():
                                       shuffle=True)
 
     print("===> Building model")
-    model = Net(opt.blocks, opt.rate)
+    model = Net(opt.blocks, opt.rate, opt.use_se)
     criterion = L1_Charbonnier_loss()
 
     # optionally resume from a checkpoint
@@ -94,19 +93,9 @@ def main():
     for epoch in range(opt.start_epoch, opt.nEpochs + 1):
         train(training_data_loader, optimizer, model, criterion, epoch)
 
-def adjust_learning_rate(optimizer, epoch):
-    lr = opt.lr * (0.1 ** (epoch // opt.step))
-    for param_group in optimizer.param_groups:
-        param_group["lr"] = lr
-    return lr
 
 def train(training_data_loader, optimizer, model, criterion, epoch):
-
-    lr = adjust_learning_rate(optimizer, epoch-1)
-    
-    for param_group in optimizer.param_groups:
-        param_group["lr"] = lr  
-    print("epoch =", epoch,"lr =",optimizer.param_groups[0]["lr"])
+    print("epoch =", epoch, "lr =", optimizer.param_groups[0]["lr"])
 
     model.train()
 
@@ -114,7 +103,7 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
 
         input, label = \
             Variable(batch[0]), \
-            Variable(batch[ int(math.sqrt(opt.rate)) ], requires_grad=False)
+            Variable(batch[int(math.sqrt(opt.rate))], requires_grad=False)
 
         if opt.cuda:
             input = input.cuda()
@@ -123,7 +112,7 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
             input = input.cpu()
             label = label.cpu()
 
-        sr= model(input)
+        sr = model(input)
         loss = criterion(label, sr)
         optimizer.zero_grad()
         loss.backward()
@@ -131,8 +120,8 @@ def train(training_data_loader, optimizer, model, criterion, epoch):
 
         if iteration % 10 == 0:
             print("===> Epoch[{}]({}/{}): Loss: {:.6f}".format(epoch, iteration, len(training_data_loader),
-                                                                loss.data[0]))
-            logger.add_scalar('loss', loss.data[0], len(training_data_loader)*epoch + iteration)
+                                                               loss.data[0]))
+            logger.add_scalar('loss', loss.data[0], len(training_data_loader) * epoch + iteration)
 
     save_checkpoint(model, opt.rate, epoch)
 
